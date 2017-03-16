@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
@@ -8,7 +9,24 @@
 #define DEFAULT_BUFLEN 1024
 #pragma comment(lib, "Ws2_32.lib")
 
+void show_socket_information(SOCKET ClientSocket)
+{
+	struct sockaddr_in sockAddr;
+	int iLen = sizeof(sockAddr);
+	//»ñÈ¡local ip and port
+	ZeroMemory(&sockAddr, sizeof(sockAddr));
+	getpeername(ClientSocket, (struct sockaddr *)&sockAddr, &iLen);//µÃµ½Ô¶³ÌIPµØÖ·ºÍ¶Ë¿ÚºÅ
+	char *nSourceIP = inet_ntoa(sockAddr.sin_addr);
+	int nSourcePort = ntohs(sockAddr.sin_port);
 
+	//»ñÈ¡remote ip and port
+	ZeroMemory(&sockAddr, sizeof(sockAddr));
+	getsockname(ClientSocket, (struct sockaddr *)&sockAddr, &iLen);//µÃµ½±¾µØµÄIPµØÖ·ºÍ¶Ë¿ÚºÅ
+	char *nDestIP = inet_ntoa(sockAddr.sin_addr);//IP
+	int nDestPort = ntohs(sockAddr.sin_port);
+	printf("source- %s:%d, dest- %s:%d\n", nSourceIP, nSourcePort, nDestIP, nDestPort);
+
+}
 int main(int argc, char **argv)
 {
 	WSADATA wsaData;
@@ -59,6 +77,7 @@ int main(int argc, char **argv)
 
 
 		// Create a SOCKET for connecting to server
+
 		ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype,
 			ptr->ai_protocol);
 		if (ConnectSocket == INVALID_SOCKET) {
@@ -71,8 +90,14 @@ int main(int argc, char **argv)
 
 		// Connect to server.
 
+		printf("before connect, ConnectSocket information: \n");
+		show_socket_information(ConnectSocket);
 
 		iResult = connect(ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+
+		printf("after connect, ConnectSocket information: \n");
+		show_socket_information(ConnectSocket);
+
 		if (iResult == SOCKET_ERROR) {
 			printf("socket failed with error\n");
 			closesocket(ConnectSocket);
@@ -98,10 +123,18 @@ int main(int argc, char **argv)
 	// Send an initial buffer
 	scanf_s(" %s", sendbuf, DEFAULT_BUFLEN);
 	printf("strlen(sendbuf) is %d, sendbuf is %s\n", strlen(sendbuf), sendbuf);
-	/ndbuf[strlen(sendbuf)] = '\0';
+	//sendbuf[strlen(sendbuf)] = '\0';
 	while (strcmp("!", sendbuf) != 0) {
 
+
+		printf("before send, ConnectSocket information: \n");
+		show_socket_information(ConnectSocket);
+
 		iResult = send(ConnectSocket, sendbuf, (int)strlen(sendbuf) + 1, 0);
+
+		printf("after send, ConnectSocket information: \n");
+		show_socket_information(ConnectSocket);
+
 		if (iResult == SOCKET_ERROR) {
 			printf("send failed with error: %d\n", WSAGetLastError());
 			closesocket(ConnectSocket);
@@ -126,11 +159,20 @@ int main(int argc, char **argv)
 		}
 		*/
 		// Receive until the peer closes the connection
+		printf("before recv, ConnectSocket information: \n");
+		show_socket_information(ConnectSocket);
 		iResult = recv(ConnectSocket, recvbuf, recvbuflen, 0);
+
+
+
+
+		printf("after recv, ConnectSocket information: \n");
+		show_socket_information(ConnectSocket);
+
 		if (iResult > 0)
 			printf("Client received: %s\n", recvbuf);
 		scanf_s("%s", sendbuf, DEFAULT_BUFLEN);
-		/ndbuf[strlen(sendbuf)] = '\0';
+		//sendbuf[strlen(sendbuf)] = '\0';
 	}
 	// cleanup
 

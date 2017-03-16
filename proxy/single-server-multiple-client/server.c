@@ -11,29 +11,35 @@
 #define DEFAULT_BUFLEN 1024
 #pragma comment(lib, "Ws2_32.lib")
 SOCKET GLOBAL[100];
+void show_socket_information(SOCKET ClientSocket)
+{
+	struct sockaddr_in sockAddr;
+	int iLen = sizeof(sockAddr);
+	//»ñÈ¡local ip and port
+	ZeroMemory(&sockAddr, sizeof(sockAddr));
+	getpeername(ClientSocket, (struct sockaddr *)&sockAddr, &iLen);//µÃµ½Ô¶³ÌIPµØÖ·ºÍ¶Ë¿ÚºÅ
+	char *nSourceIP = inet_ntoa(sockAddr.sin_addr);
+	int nSourcePort = ntohs(sockAddr.sin_port);
+
+	//»ñÈ¡remote ip and port
+	ZeroMemory(&sockAddr, sizeof(sockAddr));
+	getsockname(ClientSocket, (struct sockaddr *)&sockAddr, &iLen);//µÃµ½±¾µØµÄIPµØÖ·ºÍ¶Ë¿ÚºÅ
+	char *nDestIP = inet_ntoa(sockAddr.sin_addr);//IP
+	int nDestPort = ntohs(sockAddr.sin_port);
+	printf("source- %s:%d, dest- %s:%d\n", nSourceIP, nSourcePort, nDestIP, nDestPort);
+
+}
 DWORD WINAPI handle_a_connect(LPVOID aa)
 {
 	SOCKET ClientSocket = *(SOCKET*)aa;
-	SOCKADDR_IN sockAddr;
-	int iLen = sizeof(sockAddr);
-	//获取local ip and port
-	ZeroMemory(&sockAddr, sizeof(sockAddr));
-	getpeername(ClientSocket, (struct sockaddr *)&sockAddr, &iLen);//得到远程IP地址和端口号
-	char *nSourceIP = inet_ntoa(sockAddr.sin_addr);
-	int nSourcePort = sockAddr.sin_port;
-	//获取remote ip and port
-	ZeroMemory(&sockAddr, sizeof(sockAddr));
-	getsockname(ClientSocket, (struct sockaddr *)&sockAddr, &iLen);//得到本地的IP地址和端口号
-	char *nDestIP = inet_ntoa(sockAddr.sin_addr);//IP
-	int nDestPort = sockAddr.sin_port;
-	//端口号
+	printf("ClientSocket information: \n");
+	show_socket_information(ClientSocket);
 	char recvbuf[DEFAULT_BUFLEN];
 	int iResult;
 	do {
 		iResult = recv(ClientSocket, recvbuf, DEFAULT_BUFLEN, 0);
 		if (iResult > 0) {
-			printf("Server received: %s from %s:%d(i am %s:%d)\n", recvbuf, nSourceIP, nSourcePort, nDestIP, nDestPort);
-
+			printf("Server received: %s\n", recvbuf);
 			// Echo the buffer back to the sender
 			int iSendResult = send(ClientSocket, recvbuf, iResult, 0);
 			if (iSendResult == SOCKET_ERROR) {
@@ -43,7 +49,7 @@ DWORD WINAPI handle_a_connect(LPVOID aa)
 				while (1);
 				return 1;
 			}
-			printf("Server send: %s from %s:%d(i am %s:%d)\n", recvbuf, nSourceIP, nSourcePort, nDestIP, nDestPort);
+			printf("Server send: %s\n", recvbuf);
 		}
 		else if (iResult == 0) {
 			printf("Connection closing...\n");
@@ -108,7 +114,11 @@ int main(void)
 		return 1;
 	}
 	// Setup the TCP listening socket
+	printf("before bind, listen information: \n");
+	show_socket_information(ListenSocket);
 	iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+	printf("after bind, listen information: \n" );
+	show_socket_information(ListenSocket);
 	if (iResult == SOCKET_ERROR) {
 		printf("bind failed with error: %d\n", WSAGetLastError());
 		freeaddrinfo(result);
@@ -147,3 +157,5 @@ int main(void)
 	while (1);
 	return 0;
 }
+
+
