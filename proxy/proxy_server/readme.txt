@@ -34,3 +34,6 @@ shutdown的第二个参数linux下是SHUT_RDWR、SHUT_RD、SHUT_WR
 摘抄：
 close-----关闭本进程的socket id，但链接还是开着的，用这个socket id的其它进程还能用这个链接，能读或写这个socket id
 shutdown--则破坏了socket连接，读的时候可能侦探到EOF结束符，写的时候可能会收到一个SIGPIPE信号，这个信号可能直到socket buffer被填充了才收到，shutdown还有一个关闭方式的参数，0 不能再读，1不能再写，2 读写都不能。
+
+
+通过国外的服务器运行my_proxy_linux.c，本机访问http://ip.chinaz.com/得到的ip是国外ip，good！
