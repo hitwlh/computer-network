@@ -1,4 +1,7 @@
-﻿第一个注意的：
+﻿参考
+http://www.cnblogs.com/churi/archive/2013/02/27/2935427.html
+
+第一个注意的：
 创建socket时要 SOCK_DGRAM, IPPROTO_UDP
 SOCK_STREAM, IPPROTO_UDP 执行会退出
 
@@ -10,6 +13,7 @@ SOCK_STREAM, IPPROTO_UDP 执行会退出
 5.AF_INET(又称PF_INET)是IPv4网络协议的套接字类型,AF_INET6则是IPv6的
 
 
+参考http://blog.sina.com.cn/s/blog_412ef3420100xi4z.html
 sockaddr_in和sockaddr是并列的结构，指向sockaddr_in的结构体的指针也可以指向
 sockadd的结构体，并代替它。
 struct sockaddr {
