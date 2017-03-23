@@ -54,27 +54,36 @@ int main(int argc, char **argv)
 	int send_flag = 1;
 	//cout << "hello world\n";
 	int use2 = -1;
+	int throw_flag = 1;
 	while(!fin.eof() || send_flag == 1){
 		//cout << "hello world1\n";
 		//if(i++ > 1500000)
 		//	break;
 		if(send_flag){
 			//cout << "hello world2\n";
-			printf("send how much: %d\n", fin.gcount()+sizeof(int));
+			//printf("send how much: %d\n", fin.gcount()+sizeof(int));
 			iResult = sendto(ReceiveSocket, sendbuf, fin.gcount()+sizeof(int), 0, (struct sockaddr *)&sin, len);
-			send_flag = 0;
 			cout << "sending: " << sending << endl;
+			send_flag = 0;
+			
 		}
 		else{
+			throw_flag++;
 			//cout << "hello world3\n";
 			iResult = recvfrom(ReceiveSocket, recvbuf, sizeof(int), 0, (struct sockaddr *)&sin, &len);
-			if(iResult == sizeof(int)){
-				use2 = *((int *)recvbuf);
-				cout << "receiving: " << use2 << endl;
+			if((throw_flag % 100) != 0){
+				//模拟丢包，如果丢了包，use2还是一开始的值，就会重发已经发过的包
+				if(iResult == sizeof(int)){
+					use2 = *((int *)recvbuf);
+					cout << "receiving: " << use2 << endl;
+				}
+				else{
+					cout << "do not receiving anything" << iResult << endl;
+					use2 = -1;
+				}
 			}
 			else{
-				cout << "do not receiving anything" << iResult << endl;
-				use2 = -1;
+				printf("throw ack %d\n", (iResult == sizeof(int)) ? *((int *)recvbuf) : -1);
 			}
 			send_flag = 1;
 		}
@@ -90,8 +99,8 @@ int main(int argc, char **argv)
 			continue;
 		}
 	}
-	cout << "fin.gcount()+sizeof(int) is:" << fin.gcount()+sizeof(int) << endl;
-	sendto(ReceiveSocket, sendbuf, fin.gcount()+sizeof(int), 0, (struct sockaddr *)&sin, len);
+	cout << "fin.gcount()+sizeof(int) is:" << sizeof(int) << endl;
+	sendto(ReceiveSocket, sendbuf, sizeof(int), 0, (struct sockaddr *)&sin, len);
 	fin.close();
 	close(ReceiveSocket);
 	return 0;

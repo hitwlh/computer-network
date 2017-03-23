@@ -58,11 +58,11 @@ int main(int argc, char **argv)
 	int send_result;
 	int my_want = 0;
 	int write_f = 0;
-	cout << "my_want is: " << my_want << endl;
+	//cout << "my_want is: " << my_want << endl;
 	int chaoshi = 0;
 	while (chaoshi < 5) {
 		throw_flag++;
-		printf("throw_flag is %d\n", throw_flag);
+		//printf("throw_flag is %d\n", throw_flag);
 		//cout << "hello world1\n";
 		int ret = recvfrom(ListenSocket, recvbuf, DEFAULT_BUFLEN, 0, (struct sockaddr *)&client, &nAddrLen);
 		printf("ret is %d\n", ret);
@@ -75,11 +75,12 @@ int main(int argc, char **argv)
 		}
 
 		if (ret > 0 && (throw_flag%100) != 0)
+			//throw_flag用于模拟丢数据包，每隔100个丢一个
 		{
 			chaoshi = 0;
 			int num = *((int *)(recvbuf + ret - sizeof(int)));
 			//cout << "receiving: " << num << endl;
-			cout << "num is: " << num << " my_want is " << my_want << endl;
+			//cout << "num is: " << num << " my_want is " << my_want << endl;
 			if(num == my_want){
 				write_f += ret - sizeof(int);
 				printf("fout.write(recvbuf, %d);", ret - sizeof(int));
@@ -98,9 +99,8 @@ int main(int argc, char **argv)
 				void *use = &num;
 				memcpy(sendbuf, (char *)use, sizeof(int));
 				send_result = sendto(ListenSocket, sendbuf, sizeof(int), 0, (struct sockaddr *)&client, nAddrLen);
-				if(send_result == sizeof(int))
-					cout << "donot write, sending: " << num << endl;
-				else
+				cout << "num is: "<< num <<", donot write, sending: " << num << endl;
+				if(send_result != sizeof(int))
 					cout << "send error" << endl;
 			}
 			//cout << "hello world3\n";
@@ -110,7 +110,12 @@ int main(int argc, char **argv)
 				break;
 			}	
 		}
+		else if(ret > 0){
+			printf("throw package %d\n", *((int *)(recvbuf + ret - sizeof(int))));
+			chaoshi++;
+		}
 		else{
+			printf("return failed\n");
 			chaoshi++;
 		}
 	}
